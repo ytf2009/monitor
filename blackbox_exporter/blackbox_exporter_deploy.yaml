@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: blackbox
+  name: blackbox
+  namespace: monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: blackbox
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: blackbox
+    spec:
+      containers:
+      - image: prom/blackbox-exporter:v0.14.0
+        name: blackbox
+        ports:
+        - containerPort: 9115
+        resources: {}
+        volumeMounts:
+        - mountPath: "/etc/blackbox_exporter/"
+          name: config-volume
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 2500Mi
+      serviceAccountName: prometheus    
+      volumes:
+      - name: config-volume
+        configMap:
+          name: blackbox-config
+status: {}

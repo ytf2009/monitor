@@ -4,7 +4,7 @@ metadata:
   name: blackbox-config
   namespace: monitor
 data:
-  blackbox.yml: |
+  config.yml: |
     modules:
       http_2xx:
         prober: http
