@@ -1,45 +1,44 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  creationTimestamp: null
-  labels:
-    run: alertmanager
-  name: alertmanager
+  name: prometheus-config
   namespace: monitor
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      run: alertmanager
-  strategy: {}
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        run: alertmanager
-    spec:
-      containers:
-      - image: prom/alertmanager:v0.18.0
-        name: alertmanager
-        ports:
-        - containerPort: 9093
-          protocol: TCP
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-          limits:
-            cpu: 500m
-            memory: 2500Mi
-        volumeMounts:
-        - mountPath: /etc/alertmanager/alertmanager.yml
-          name: config
-          subPath: alertmanager.yml
-      volumes:
-      - configMap:
-          items:
-          - key: alertmanager.yml
-            path: alertmanager.yml
-          name: alertmanager-config
-        name: config
-status: {}
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.qq.com:25'
+      smtp_from: 'xxx@qq.com'
+      smtp_auth_username: 'xxx@qq.com'
+      smtp_auth_password: '邮箱授权码'
+    
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1m
+      receiver: 'mail-receiver'
+    receivers:
+    - name: 'mail-receiver'
+      email_configs:
+      - to: 'xxx@qq.com'
+
+    #global:
+    #  resolve_timeout: 5m
+    #
+    #route:
+    #  group_by: ['alertname']
+    #  group_wait: 10s
+    #  group_interval: 10s
+    #  repeat_interval: 1h
+    #  receiver: 'web.hook'
+    #receivers:
+    #- name: 'web.hook'
+    #  webhook_configs:
+    #  - url: 'http://127.0.0.1:5001/'
+    #inhibit_rules:
+    #  - source_match:
+    #      severity: 'critical'
+    #    target_match:
+    #      severity: 'warning'
+    #    equal: ['alertname', 'dev', 'instance']
