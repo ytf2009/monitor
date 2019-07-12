@@ -1,0 +1,48 @@
+  - job_name: 'blackbox_tcp_port'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]  # Look for a HTTP 200 response.
+    static_configs:
+      - targets:
+        - 192.168.72.10:443   # Target to probe with http.
+        - 10.9.0.10:443   # Target to probe with http.
+        labels:
+          app: chartmuseum
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-prometheus-blackbox-exporter:9115
+
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+      - targets:
+        - http://192.168.72.100:8080
+        - http://10.9.6.100:8080
+        labels:
+          app: bigdata
+      - targets:
+        - http://domainname/zipkin/
+        labels:
+          app: zipkin
+      - targets:
+        - http://domainname/login
+        labels:
+          app: kibana
+      - targets:
+        - https://10.9.0.10:8443   # Target to probe with http.
+        - https://192.168.72.10
+        labels:
+          app: rancher
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-prometheus-blackbox-exporter:9115
