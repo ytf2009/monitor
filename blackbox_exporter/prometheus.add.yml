@@ -1,4 +1,16 @@
-  - job_name: 'blackbox_tcp_port'
+rule_files:
+  - 'node.rules'
+  - 'blackbox.rules'
+
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+- job_name: 'blackbox_tcp_port'
     metrics_path: /probe
     params:
       module: [tcp_connect]  # Look for a HTTP 200 response.
@@ -23,7 +35,7 @@
     static_configs:
       - targets:
         - http://x.x.x.x:8080
-        - http://DQDN:8080
+        - http://FQDN:8080
         labels:
           app: bigdata
       - targets:
