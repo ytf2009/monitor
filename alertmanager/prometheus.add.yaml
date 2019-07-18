@@ -1,0 +1,13 @@
+rule_files:
+  - 'kubernetes.rules'
+  - 'pod.rules'
+  - 'node.rules'
+  - 'blackbox.rules'
+
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
