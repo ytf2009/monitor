@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: grafana-core
+  name: grafana
   namespace: monitor
   labels:
     app: grafana
@@ -14,8 +14,10 @@ spec:
         app: grafana
         component: core
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8snode01
       containers:
-      - image: grafana/grafana:5.0.4
+      - image: grafana/grafana:6.0.1
         name: grafana-core
         imagePullPolicy: IfNotPresent
         # env:
@@ -46,7 +48,12 @@ spec:
           # timeoutSeconds: 1
         volumeMounts:
         - name: grafana-persistent-storage
-          mountPath: /var
+          mountPath: /var/lib/grafana
+      securityContext:
+        runAsGroup: 472
+        runAsUser: 472
+        fsGroup: 472
       volumes:
       - name: grafana-persistent-storage
-        emptyDir: {}
+        hostPath:
+          path: /var/lib/grafana
