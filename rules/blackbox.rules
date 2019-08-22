@@ -1,5 +1,5 @@
 groups:
-- name: prometheus
+- name: blackbox
   rules:
 
   - alert: blackbox_work

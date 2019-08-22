@@ -1,5 +1,5 @@
 groups:
-- name: prometheus
+- name: node.rule
   rules:
 #  - alert: high_load
 #    expr: node_load1 > 5
