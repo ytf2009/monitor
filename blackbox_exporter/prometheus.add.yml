@@ -1,15 +1,3 @@
-rule_files:
-  - 'node.rules'
-  - 'blackbox.rules'
-
-# alert
-alerting:
-  alertmanagers:
-  - scheme: http
-    static_configs:
-    - targets:
-      - "alertmanager:9093"
-
 - job_name: 'blackbox_tcp_port'
     metrics_path: /probe
     params:
