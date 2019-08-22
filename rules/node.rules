@@ -1,15 +1,14 @@
 groups:
 - name: prometheus
   rules:
-
-  - alert: InstanceDown
-    expr: up == 0
-    for:1m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Instance {{ $labels.instance }} is down"
-      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+#  - alert: high_load
+#    expr: node_load1 > 5
+#    for: 2m
+#    labels:
+#      severity: warning
+#    annotations:
+#      summary: "Instance {{ $labels.instance }} under high load"
+#      description: "{{ $labels.instance }} of job {{ $labels.job }} is under high load(current node_load1 is {{ $value }})."
 
   - alert: high_load
     expr: node_load5 > 10
@@ -26,7 +25,7 @@ groups:
     labels:
       severity: warning
     annotations:
-      description: "device {{$labels.device}} on node {{$labels.instance}} is more than 90% (mounted at {{$labels.mountpoint}})"
+      description: "device {{$labels.device}} on node {{$labels.instance}} is more than 80% (mounted at {{$labels.mountpoint}})"
 
   - alert: NodeDiskRunningFull
     expr: (100 - node_filesystem_free_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} * 100) > 90
@@ -51,4 +50,3 @@ groups:
       severity: critical
     annotations:
       description: "{{$labels.instance}} memory usage is more than 85% (current value is {{ $value }})"
-
