@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mysql-exporter
+  name: mysql-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: mysql-exporter
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: mysql-exporter
+    spec:
+      containers:
+      - image: prom/mysqld-exporter
+        name: mysql-exporter
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "exporter:111111@(mariadb.paas:3306)/"
+        ports:
+        - containerPort: 9104
+        resources: {}
+      initContainers:
+      - name: init-myservice
+        image: busybox
+        command: ['sh', '-c', 'until (nc -w 3 mariadb.paas:3306) ;do sleep 5; done']
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mysql-exporter
+  name: mysql-exporter
+spec:
+  ports:
+  - port: 9104
+    protocol: TCP
+    targetPort: 9104
+  selector:
+    run: mysql-exporter
+status:
+  loadBalancer: {}

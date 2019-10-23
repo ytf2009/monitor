@@ -272,7 +272,6 @@ data:
         action: replace
         target_label: kubernetes_pod_name
 
-
     - job_name: "etcd"
       scheme: https
       tls_config:

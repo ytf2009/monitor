@@ -1,0 +1,9 @@
+
+    - job_name: 'kubernetes-paas-mariadb'
+      scrape_interval: 15s
+      static_configs:
+        - targets:
+          - 'mysql-exporter.monitor:9104'
+          labels:
+            environment: prod
+            ns: paas
