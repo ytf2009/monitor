@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitor
+spec:
+  rules:
+  - host: prometheus.kubernetes.com
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: prometheus
+          servicePort: 9090

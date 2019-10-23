@@ -14,8 +14,6 @@ spec:
         app: grafana
         component: core
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: k8snode01
       containers:
       - image: grafana/grafana:6.0.1
         name: grafana-core
@@ -55,5 +53,4 @@ spec:
         fsGroup: 472
       volumes:
       - name: grafana-persistent-storage
-        hostPath:
-          path: /var/lib/grafana
+        emptyDir: {}
