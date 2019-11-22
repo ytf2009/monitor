@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: influxdb
+  namespace: monitor
+spec:
+  ports:
+  - port: 8086
+    protocol: TCP
+    targetPort: 8086
+  selector:
+    run: influxdb
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: influxdb
+  name: influxdb
+  namespace: monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: influxdb
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: influxdb
+    spec:
+      containers:
+      - image: influxdb
+        name: influxdb
+        ports:
+        - containerPort: 8086
+        resources: {}
+        volumeMounts:
+        - mountPath: "/var/lib/influxdb"
+          name: influxdb-data   
+      volumes:
+      - name: influxdb-data
+        emptyDir: {}
+status: {}
