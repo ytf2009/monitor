@@ -9,6 +9,7 @@ data:
       scrape_interval:     15s
       evaluation_interval: 15s
 
+
     remote_write:
       - url: "http://influxdb:8086/api/v1/prom/write?db=prometheus"
     
