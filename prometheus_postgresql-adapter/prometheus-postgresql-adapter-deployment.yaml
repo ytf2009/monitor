@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: prometheus-postgresql-adapter
+  name: prometheus-postgresql-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: prometheus-postgresql-adapter
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: prometheus-postgresql-adapter
+    spec:
+      containers:
+      - env:
+        - name: TS_PROM_LOG_LEVEL
+          value: debug
+        - name: TS_PROM_PG_DB_CONNECT_RETRIES
+          value: "10"
+        - name: TS_PROM_PG_HOST
+          value: pg-prometheus
+        - name: TS_PROM_PG_PASSWORD
+          value: postgres
+        - name: TS_PROM_PG_SCHEMA
+          value: postgres
+        - name: TS_PROM_WEB_TELEMETRY_PATH
+          value: /metrics-text
+        image: timescale/prometheus-postgresql-adapter:latest
+        name: prometheus-postgresql-adapter
+        ports:
+        - containerPort: 9201
+        resources: {}
+      restartPolicy: Always
+status: {}

@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pg-prometheus
+  name: pg-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: pg-prometheus
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: pg-prometheus
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        image: timescale/pg_prometheus:latest
+        name: db
+        ports:
+        - containerPort: 5432
+        resources: {}
+      restartPolicy: Always
+status: {}
