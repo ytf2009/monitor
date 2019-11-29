@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-prometheus-headless
+  labels:
+    app: pg-prometheus
+  namespace: monitor
+spec:
+  ports:
+  - port: 8086
+    name: pg-prometheus
+  clusterIP: None
+  selector:
+    app: pg-prometheus
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pg-prometheus
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: pg-prometheus
+  serviceName: "pg-prometheus"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pg-prometheus
+    spec:
+      containers:
+      - name: pg-prometheus
+        image: timescale/pg_prometheus:latest
+        ports:
+        - containerPort: 8086
+          name: pg-prometheus
+        volumeMounts:
+        - name: pg-prometheus-data
+          mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+  - metadata:
+      name: pg-prometheus-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      #storageClassName: "nfs"
+      resources:
+        requests:
+          storage: 10Gi
+---

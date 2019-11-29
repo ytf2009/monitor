@@ -10,9 +10,11 @@ data:
       evaluation_interval: 15s
 
     remote_write:
-        - url: "http://prometheus_postgresql_adapter:9201/write"
+      - url: "http://prometheus_postgresql_adapter:9201/write"
+
     remote_read:
-        - url: "http://prometheus_postgresql_adapter:9201/read"
+      - url: "http://prometheus_postgresql_adapter:9201/read"
+        read_recent: true
 
     scrape_configs:
 

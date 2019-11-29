@@ -25,7 +25,7 @@ spec:
         - name: TS_PROM_PG_DB_CONNECT_RETRIES
           value: "10"
         - name: TS_PROM_PG_HOST
-          value: pg-prometheus
+          value: pg-prometheus 
         - name: TS_PROM_PG_PASSWORD
           value: postgres
         - name: TS_PROM_PG_SCHEMA
