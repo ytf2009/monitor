@@ -392,3 +392,10 @@ data:
       #  action: replace
       #  target_label: kubernetes_name
 
+    #mc admin prometheus generate generates prometheus config
+    - job_name: minio-job
+      #bearer_token: minio-tonken
+      metrics_path: /minio/prometheus/metrics
+      scheme: http
+      static_configs:
+      - targets: ['minio-service.paas:9000']

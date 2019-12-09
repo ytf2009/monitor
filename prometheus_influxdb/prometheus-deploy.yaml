@@ -22,7 +22,7 @@ spec:
         command: [ 'curl',  '-XPOST',  'http://influxdb:8086/query', '--data-urlencode', "q=CREATE DATABASE prometheus"]
         #command: [ 'curl',   'http://172.16.1.24:8888']
       containers:
-      - image: prom/prometheus:v2.10.0
+      - image: prom/prometheus:v2.14.0
         name: prometheus
         command:
         - "/bin/prometheus"
