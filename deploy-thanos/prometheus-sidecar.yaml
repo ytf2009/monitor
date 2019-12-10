@@ -1,0 +1,174 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-0
+spec:
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: http-prometheus
+      name: http-prometheus
+      nodePort: 30001
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-0
+  type: NodePort
+---
+# We want to be able to access each replica.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-1
+spec:
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: http-prometheus
+      name: http-prometheus
+      nodePort: 30002
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-1
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: sidecar-0
+spec:
+  ports:
+    - port: 10901
+      protocol: TCP
+      targetPort: grpc
+      name: grpc
+      nodePort: 30901
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-0
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: sidecar-1
+spec:
+  ports:
+    - port: 10901
+      protocol: TCP
+      targetPort: grpc
+      name: grpc
+      nodePort: 30902
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-1
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+spec:
+  serviceName: "prometheus"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        # We will use this label to put all StoreAPis
+        # under the same headless service for
+        # SRV lookup: thanos-store-api.default.svc
+        thanos-store-api: "true"
+    spec:
+      initContainers:
+      - name: createinfluxdb
+        image: influxdb:1.7.9
+        command: [ 'curl',  '-XPOST',  'http://influxdb:8086/query', '--data-urlencode', "q=CREATE DATABASE prometheus"]
+        #command: [ 'curl',   'http://172.16.1.24:8888']
+      #- name: createinfluxdb-1
+      #  image: yauritux/busybox-curl:latest
+      #  command: [ 'curl',  '-XPOST',  'http://influxdb-1:8086/query', '--data-urlencode', "q=CREATE DATABASE prometheus"]
+      #securityContext:
+      #  runAsUser: 1000
+      #  fsGroup: 2000
+      #  runAsNonRoot: true
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.10.0
+        args:
+          - --config.file=/etc/prometheus-shared/prometheus.yaml
+          - --storage.tsdb.path=/var/prometheus
+          - --web.enable-lifecycle
+          - --storage.tsdb.retention=15h
+          - --storage.tsdb.min-block-duration=2h
+          - --storage.tsdb.max-block-duration=2h
+          - --web.enable-admin-api
+        ports:
+          - name: http-prometheus
+            containerPort: 9090
+        volumeMounts:
+          - name: config-shared
+            mountPath: /etc/prometheus-shared
+          - name: rules
+            mountPath: /etc/prometheus/rules
+          - name: prometheus
+            mountPath: /var/prometheus
+      - name: thanos
+        #image: improbable/thanos:v0.6.0 
+        image: thanosio/thanos:v0.9.0 
+        args:
+          - sidecar
+          - --log.level=debug
+          - --tsdb.path=/var/prometheus
+          - --prometheus.url=http://localhost:9090
+          - --reloader.config-file=/etc/prometheus/prometheus.yaml.tmpl
+          - --reloader.config-envsubst-file=/etc/prometheus-shared/prometheus.yaml
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        ports:
+          - name: http-sidecar
+            containerPort: 10902
+          - name: grpc
+            containerPort: 10901
+        volumeMounts:
+          - name: prometheus
+            mountPath: /var/prometheus
+          - name: config-shared
+            mountPath: /etc/prometheus-shared
+          - name: config
+            mountPath: /etc/prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus
+        - name: rules
+          configMap:
+            name: prometheus-rules
+        - name: config-shared
+          emptyDir: {}
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app: prometheus
+      name: prometheus
+    spec:
+      #storageClassName: prom-manual
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
