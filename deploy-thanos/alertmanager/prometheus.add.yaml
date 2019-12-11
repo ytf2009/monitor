@@ -1,0 +1,9 @@
+
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager-0.alertmanager:9093"
+      - "alertmanager-1.alertmanager:9093"

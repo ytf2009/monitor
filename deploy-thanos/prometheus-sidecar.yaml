@@ -92,14 +92,6 @@ spec:
       - name: createinfluxdb
         image: influxdb:1.7.9
         command: [ 'curl',  '-XPOST',  'http://influxdb:8086/query', '--data-urlencode', "q=CREATE DATABASE prometheus"]
-        #command: [ 'curl',   'http://172.16.1.24:8888']
-      #- name: createinfluxdb-1
-      #  image: yauritux/busybox-curl:latest
-      #  command: [ 'curl',  '-XPOST',  'http://influxdb-1:8086/query', '--data-urlencode', "q=CREATE DATABASE prometheus"]
-      #securityContext:
-      #  runAsUser: 1000
-      #  fsGroup: 2000
-      #  runAsNonRoot: true
       serviceAccountName: prometheus
       containers:
       - name: prometheus
