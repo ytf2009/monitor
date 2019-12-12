@@ -15,7 +15,7 @@ spec:
         component: core
     spec:
       containers:
-      - image: grafana/grafana:6.0.1
+      - image: grafana/grafana:6.5.2
         name: grafana-core
         imagePullPolicy: IfNotPresent
         # env:
@@ -53,4 +53,5 @@ spec:
         fsGroup: 472
       volumes:
       - name: grafana-persistent-storage
-        emptyDir: {}
+        persistentVolumeClaim: 
+          claimName: grafana-pvc
