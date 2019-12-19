@@ -1,0 +1,79 @@
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: influxdb
+#  name: influxdb-0
+#spec:
+#  ports:
+#    - port: 8086
+#      protocol: TCP
+#      targetPort: 8086
+#      name: influxdb
+#  selector:
+#    statefulset.kubernetes.io/pod-name: influxdb-0
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: influxdb
+#  name: influxdb-1
+#spec:
+#  ports:
+#    - port: 8086
+#      protocol: TCP
+#      targetPort: 8086
+#      name: influxdb
+#  selector:
+#    statefulset.kubernetes.io/pod-name: influxdb-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  labels:
+    app: influxdb
+  namespace: monitor
+spec:
+  ports:
+  - port: 8086
+    name: database
+  clusterIP: None
+  selector:
+    app: influxdb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: influxdb
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  serviceName: "influxdb"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - name: influxdb
+        image: influxdb:1.7.9
+        ports:
+        - containerPort: 8086
+          name: influxdb
+        volumeMounts:
+        - name: influxdb-data
+          mountPath: /var/lib/influxdb
+  volumeClaimTemplates:
+  - metadata:
+      name: influxdb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      #storageClassName: "nfs"
+      resources:
+        requests:
+          storage: 10Gi
