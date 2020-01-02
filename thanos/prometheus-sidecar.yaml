@@ -33,6 +33,41 @@ spec:
     statefulset.kubernetes.io/pod-name: prometheus-1
   type: NodePort
 ---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: prometheus
+#  name: sidecar-0
+#spec:
+#  ports:
+#    - port: 10901
+#      protocol: TCP
+#      targetPort: grpc
+#      name: grpc
+#      nodePort: 30901
+#  selector:
+#    statefulset.kubernetes.io/pod-name: prometheus-0
+#  type: NodePort
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app: prometheus
+#  name: sidecar-1
+#spec:
+#  ports:
+#    - port: 10901
+#      protocol: TCP
+#      targetPort: grpc
+#      name: grpc
+#      nodePort: 30902
+#  selector:
+#    statefulset.kubernetes.io/pod-name: prometheus-1
+#  type: NodePort
+---
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,14 +76,14 @@ metadata:
   name: sidecar-0
 spec:
   ports:
-    - port: 10901
-      protocol: TCP
-      targetPort: grpc
-      name: grpc
-      nodePort: 30901
+  - name: grpc
+    port: 10901
+    targetPort: 10901
+  - name: http
+    port: 10902
+    targetPort: 10902
   selector:
     statefulset.kubernetes.io/pod-name: prometheus-0
-  type: NodePort
 ---
 apiVersion: v1
 kind: Service
@@ -58,14 +93,14 @@ metadata:
   name: sidecar-1
 spec:
   ports:
-    - port: 10901
-      protocol: TCP
-      targetPort: grpc
-      name: grpc
-      nodePort: 30902
+  - name: grpc
+    port: 10901
+    targetPort: 10901
+  - name: http
+    port: 10902
+    targetPort: 10902
   selector:
     statefulset.kubernetes.io/pod-name: prometheus-1
-  type: NodePort
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
