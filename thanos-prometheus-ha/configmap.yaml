@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bucketconfig
+  namespace: monitor
+data:
+  config.yaml: |
+    type: S3
+    config:
+      bucket: "prometheus"
+      endpoint: "minio-monitor:9000"
+      access_key: "AKIAIOSFODNN7EXAMPLE"
+      secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      insecure: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus
+  namespace: monitor
+data:
+  prometheus.yaml.tmpl: |-
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      external_labels:
+        datacenter: thanos-prometheus
+        # Each Prometheus has to have unique labels.
+        replica: $(HOSTNAME)
+
+    rule_files:
+    - /etc/prometheus/rules/*.rules
+
+    #alerting:
+    #  alertmanagers:
+    #  - scheme: http
+    #    static_configs:
+    #    - targets:
+    #      - "alertmanager-headless:9093"
+            #- "alertmanager-1.alertmanager:9093"
+
+
+    scrape_configs:
+    - job_name: 'federate'
+      scrape_interval: 120s
+      scrape_timeout: 120s
+      honor_labels: true
+      metrics_path: '/federate'
+      params:
+        'match[]':
+          - '{job=~"kubernetes-.*"}'
+      static_configs:
+        - targets:
+          - 'monitor-prometheus-m1c2-monitor.icos.city'
+          labels:
+            environment: pilot
+
+    - job_name: 'prometheus'
+      static_configs:
+      - targets: 
+        - 'prometheus-0:9090'
+        - 'prometheus-1:9090'
+
+    - job_name: 'sidecar'
+      static_configs:
+      - targets: ['sidecar-0:10902','sidecar-1:10902']
+
+    - job_name: 'alertmanager'
+      static_configs:
+      - targets: 
+        - 'alertmanager-0.alertmanager:9093'
+        - 'alertmanager-1.alertmanager:9093'
+
+    - job_name: 'thanos-querier'
+      static_configs:
+      - targets:
+        - 'thanos-querier:9090'  
+
+    - job_name: 'thanos-store'
+      static_configs:
+      - targets: 
+        - 'thanos-store-0.thanos-store:10902'
+        - 'thanos-store-1.thanos-store:10902'
+
+    - job_name: 'thanos-rule'
+      static_configs:
+      - targets:
+        - 'thanos-rule-0.thanos-rule:10902'
+        - 'thanos-rule-1.thanos-rule:10902'
+
+    - job_name: 'thanos-compactor'
+      static_configs:
+      - targets:
+        - 'thanos-compactor:10902'
+
+    - job_name: 'minio'
+      metrics_path: /minio/prometheus/metrics
+      scheme: http
+      static_configs:
+      - targets: ['minio-monitor:9000']
+          #
+          #    - job_name: 'node-exporters'
+          #      scrape_interval: 15s
+          #      static_configs:
+          #        - targets:
+          #          - '172.16.1.23:9100'
+          #          - '172.16.1.24:9100'
+          #

@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitor
+spec:
+  rules:
+  - host: grafana.chebai.org
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: grafana
+          servicePort: 3000

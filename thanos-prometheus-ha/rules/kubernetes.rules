@@ -1,0 +1,85 @@
+groups:
+- name: kubernetes.rules 
+  rules:
+  - alert: PodDisknotEnough
+    expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100 > 80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PVC {{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}} not enough."
+      description: "PVC {{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}} not enough."
+
+  - alert: PodFrequentlyRestarting
+    expr: increase(kube_pod_container_status_restarts_total{namespace="paas"}[1h]) > 5 or increase(kube_pod_container_status_restarts_total{namespace="monitor"}[1h]) > 5
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: "Pod {{$labels.namespace}}/{{$labels.pod}} was restarted {{$value}} times within the last hour"
+
+  - alert: DaemonSetsMissScheduled
+    expr: kube_daemonset_status_number_misscheduled > 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: A number of daemonsets are running where they are not supposed to run.
+      summary: Daemonsets are not scheduled correctly
+
+  - alert: K8SDaemonSetsNotScheduled
+    expr: kube_daemonset_status_desired_number_scheduled - kube_daemonset_status_current_number_scheduled  > 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: "A number of daemonsets are not scheduled."
+      summary: "Daemonsets are not scheduled correctly"
+
+  - alert: DaemonSetRolloutStuck
+    expr: kube_daemonset_status_current_number_scheduled / kube_daemonset_status_desired_number_scheduled  * 100 < 100
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      description: "Only {{$value}}% of desired pods scheduled and ready for daemon set {{$labels.namespace}}/{{$labels.daemonset}}"
+
+#  - alert: DeploymentReplicasNotUpdated
+#    expr: ((kube_deployment_status_replicas_updated != kube_deployment_spec_replicas) or (kube_deployment_status_replicas_available != kube_deployment_spec_replicas)) unless (kube_deployment_spec_paused == 1)
+#    for: 15m
+#    labels:
+#      severity: warning
+#    annotations:
+#      description: Replicas are not updated and available for deployment {{$labels.namespace}}/{{$labels.deployment}}
+
+  - alert: KubeNodeUnschedulable
+    expr: kube_node_spec_unschedulable == 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} is unschedulabled for 5m.
+
+  - alert: KubeNodeNotready
+    expr: kube_node_status_condition{condition="Ready",status!="true"} == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} is not ready.
+
+  - alert: KubeNodePressure
+    expr: kube_node_status_condition{condition=~"OutOfDisk|MemoryPressure|DiskPressure",status!="false"} == 1 
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} pressure.
+
+  - alert: KubPVCLost
+    expr: kube_persistentvolumeclaim_status_phase{phase="Lost"} == 1 
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.environment }}.{{ $labels.kubernetes_namespace }} is lost. 

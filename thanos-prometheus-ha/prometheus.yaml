@@ -1,0 +1,222 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-0
+spec:
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: http-prometheus
+      name: http-prometheus
+      nodePort: 31001
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-0
+  type: NodePort
+---
+# We want to be able to access each replica.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-1
+spec:
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: http-prometheus
+      name: http-prometheus
+      nodePort: 31002
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-1
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: sidecar-0
+spec:
+  ports:
+  - name: grpc
+    port: 10901
+    targetPort: 10901
+  - name: http
+    port: 10902
+    targetPort: 10902
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: sidecar-1
+spec:
+  ports:
+  - name: grpc
+    port: 10901
+    targetPort: 10901
+  - name: http
+    port: 10902
+    targetPort: 10902
+  selector:
+    statefulset.kubernetes.io/pod-name: prometheus-1
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheus-headless
+  namespace: monitor
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: prometheus
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9090
+    #targetPort: web
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+spec:
+  serviceName: "prometheus"
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        # We will use this label to put all StoreAPis
+        # under the same headless service for
+        # SRV lookup: thanos-store-api.default.svc
+        thanos-store-api: "true"
+    spec:
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - prometheus
+            topologyKey: kubernetes.io/hostname
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: reg.chebai.org/paas/prometheus:v2.18.1
+        args:
+          - --config.file=/etc/prometheus-shared/prometheus.yaml
+          - --storage.tsdb.path=/var/prometheus
+          - --web.enable-lifecycle
+          - --storage.tsdb.retention=15h
+          - --storage.tsdb.min-block-duration=2h
+          - --storage.tsdb.max-block-duration=2h
+          - --web.enable-admin-api
+        ports:
+          - name: http-prometheus
+            containerPort: 9090
+          - name: grpc-ptometheus
+            containerPort: 10901
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 2Gi
+          limits:
+            cpu: 1
+            memory: 4Gi
+        volumeMounts:
+          - name: config-shared
+            mountPath: /etc/prometheus-shared
+          - name: rules
+            mountPath: /etc/prometheus/rules
+          - name: prometheus
+            mountPath: /var/prometheus
+      - name: sidecar
+        #image: improbable/thanos:v0.6.0 
+        image: reg.chebai.org/paas/thanos:v0.12.1
+        args:
+          - sidecar
+          - --log.level=debug
+          - --tsdb.path=/var/prometheus
+          - --prometheus.url=http://localhost:9090
+          - --reloader.config-file=/etc/prometheus/prometheus.yaml.tmpl
+          - --reloader.config-envsubst-file=/etc/prometheus-shared/prometheus.yaml
+          - --objstore.config-file=/etc/bucket/config.yaml
+          - --http-address=0.0.0.0:10902
+          - --grpc-address=0.0.0.0:10901
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        ports:
+          - name: http-sidecar
+            containerPort: 10902
+          - name: grpc
+            containerPort: 10901
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 1Gi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        volumeMounts:
+          - name: prometheus
+            mountPath: /var/prometheus
+          - name: config-shared
+            mountPath: /etc/prometheus-shared
+          - name: config
+            mountPath: /etc/prometheus
+          - name: bucketconfig
+            mountPath: /etc/bucket
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus
+        - name: rules
+          configMap:
+            name: prometheus-rules
+        - name: config-shared
+          emptyDir: {}
+        - name: bucketconfig
+          configMap:
+            name: bucketconfig
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus
+      #annotations:
+      #  everest.io/disk-volume-type: SAS
+      #labels:
+      #  failure-domain.beta.kubernetes.io/region: cn-north-4
+      #  failure-domain.beta.kubernetes.io/zone: cn-north-4b
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      #storageClassName: csi-disk
+      resources:
+        requests:
+          storage: 20Gi
