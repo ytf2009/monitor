@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: prometheus-pvc
+  name: prometheus-data
   namespace: monitor
 spec:
   accessModes:
