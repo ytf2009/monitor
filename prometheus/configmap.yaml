@@ -225,27 +225,27 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         target_label: kubernetes_name
 
-    - job_name: 'kubernetes-ingresses'
-      kubernetes_sd_configs:
-      - role: ingress
-      relabel_configs:
-      - source_labels: [__meta_kubernetes_ingress_annotation_prometheus_io_probe]
-        action: keep
-        regex: true
-      - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
-        regex: (.+);(.+);(.+)
-        replacement: ${1}://${2}${3}
-        target_label: __param_target
-      - target_label: __address__
-        replacement: blackbox-exporter.example.com:9115
-      - source_labels: [__param_target]
-        target_label: instance
-      - action: labelmap
-        regex: __meta_kubernetes_ingress_label_(.+)
-      - source_labels: [__meta_kubernetes_namespace]
-        target_label: kubernetes_namespace
-      - source_labels: [__meta_kubernetes_ingress_name]
-        target_label: kubernetes_name
+    # - job_name: 'kubernetes-ingresses'
+    #   kubernetes_sd_configs:
+    #   - role: ingress
+    #   relabel_configs:
+    #   - source_labels: [__meta_kubernetes_ingress_annotation_prometheus_io_probe]
+    #     action: keep
+    #     regex: true
+    #   - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
+    #     regex: (.+);(.+);(.+)
+    #     replacement: ${1}://${2}${3}
+    #     target_label: __param_target
+    #   - target_label: __address__
+    #     replacement: blackbox-exporter.example.com:9115
+    #   - source_labels: [__param_target]
+    #     target_label: instance
+    #   - action: labelmap
+    #     regex: __meta_kubernetes_ingress_label_(.+)
+    #   - source_labels: [__meta_kubernetes_namespace]
+    #     target_label: kubernetes_namespace
+    #   - source_labels: [__meta_kubernetes_ingress_name]
+    #     target_label: kubernetes_name
 
     - job_name: 'kubernetes-pods'
       kubernetes_sd_configs:
@@ -272,14 +272,14 @@ data:
         action: replace
         target_label: kubernetes_pod_name
 
-    - job_name: "etcd"
-      scheme: https
-      tls_config:
-        ca_file: /etc/cert/ca.crt
-        cert_file: /etc/cert/healthcheck-client.crt
-        key_file: /etc/cert/healthcheck-client.key
-      static_configs:
-      - targets: ['172.16.1.20:2379']
+    # - job_name: "etcd"
+    #   scheme: https
+    #   tls_config:
+    #     ca_file: /etc/cert/ca.crt
+    #     cert_file: /etc/cert/healthcheck-client.crt
+    #     key_file: /etc/cert/healthcheck-client.key
+    #   static_configs:
+    #   - targets: ['172.16.1.20:2379']
 
     - job_name: 'kube-etcd'
       # 通过https访问apiserver
@@ -385,7 +385,7 @@ data:
       #  target_label: kubernetes_name
 
 
-    - job_name: 'kubernetes-service-http-probe'
+    - job_name: 'kubernetes-blackbox-http-probe'
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -415,7 +415,7 @@ data:
       #  replacement: $1$2
       # 用blackbox-exporter的service地址值”prometheus-blackbox-exporter:9115"替换原__address__的值
       - target_label: __address__
-        replacement: monitor-blackboxexporter-m1c2-monitor:9115
+        replacement: blackboxexporter-monitor:9115
       - source_labels: [__param_target]
         target_label: instance
       # 去掉label name中的前缀__meta_kubernetes_service_annotation_prometheus_io_app_info_
@@ -426,12 +426,12 @@ data:
       #- source_labels: [__meta_kubernetes_service_name]
       #  target_label: kubernetes_name
       ## kubernetes-services and kubernetes-ingresses are blackbox_exporter related
-      
       # Example scrape config for probing services via the Blackbox Exporter.
       #
       # The relabeling allows the actual service scrape endpoint to be configured
       # for all or only some services.
-    - job_name: 'kubernetes-service-tcp-probe'
+
+    - job_name: 'kubernetes-blackbox-tcp-probe'
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -458,14 +458,14 @@ data:
       #  target_label: __param_target
       # 用blackbox-exporter的service地址值”prometheus-blackbox-exporter:9115"替换原__address__的值
       - target_label: __address__
-        replacement: monitor-blackboxexporter-m1c2-monitor:9115
+        replacement: blackboxexporter-monitor:9115
       - source_labels: [__param_target]
         target_label: instance
       # 去掉label name中的前缀__meta_kubernetes_service_annotation_prometheus_io_app_info_
       - action: labelmap
         regex: __meta_kubernetes_service_annotation_prometheus_io_app_info_(.+)
     
-    - job_name: 'kubernetes-blackbox-ingresses'
+    - job_name: 'kubernetes-blackbox-ingresses-probe'
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -483,7 +483,7 @@ data:
         replacement: ${1}://${2}${3}
         target_label: __param_target
       - target_label: __address__
-        replacement: monitor-blackboxexporter-m1c2-monitor:9115
+        replacement: blackboxexporter-monitor:9115
       - source_labels: [__param_target]
         target_label: instance
       - action: labelmap
