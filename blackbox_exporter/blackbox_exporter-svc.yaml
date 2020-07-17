@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     run: blackbox
-  name: blackbox
+  name: blackboxexporter-monitor
   namespace: monitor
 spec:
   ports:
