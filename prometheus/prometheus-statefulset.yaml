@@ -117,8 +117,8 @@ spec:
               name: prometheus-data
             - mountPath: "/etc/prometheus"
               name: config-volume
-            # - name: prometheus-rules
-            #   mountPath: /etc/config/rules
+            - name: prometheus-rules
+              mountPath: /etc/rules
             #   subPath: ""
 
       terminationGracePeriodSeconds: 300
@@ -126,9 +126,9 @@ spec:
         - name: config-volume
           configMap:
             name: prometheus-config
-        # - name: prometheus-rules
-        #   configMap:
-        #     name: prometheus-rules
+        - name: prometheus-rules
+          configMap:
+            name: prometheus-rules
 
   volumeClaimTemplates:
   - metadata:
