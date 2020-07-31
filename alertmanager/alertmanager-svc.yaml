@@ -13,7 +13,7 @@ spec:
     targetPort: 9093
     nodePort: 31003
   selector:
-    run: alertmanager
+    app: alertmanager
   type: NodePort
 status:
   loadBalancer: {}
