@@ -496,3 +496,10 @@ data:
         target_label: kubernetes_namespace
       - source_labels: [__meta_kubernetes_ingress_name]
         target_label: kubernetes_name
+
+    # - job_name: minio
+    #   #bearer_token: <secret>
+    #   metrics_path: /minio/prometheus/metrics
+    #   scheme: http
+    #   static_configs:
+    #   - targets: ['minio.paas:9000']
