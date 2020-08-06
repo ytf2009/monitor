@@ -73,7 +73,7 @@ data:
       # This way ensures that you get multiple alerts for the same group that start
       # firing shortly after another are batched together on the first 
       # notification.
-      group_wait: 30s
+      group_wait: 10s
     
       # When the first notification was sent, wait 'group_interval' to send a batch
       # of new alerts that started firing for that group.
@@ -84,12 +84,12 @@ data:
       repeat_interval: 4h 
     
       # A default receiver
-      receiver: 'monitor_prometheus'
+      receiver: 'webhook'
       routes:
-      - receiver: 'monitor_prometheus'
+      - receiver: 'webhook'
         match:
           severity: critical
-      - receiver: 'monitor_prometheus'
+      - receiver: 'webhook'
         match:
           severity: warning
     
@@ -99,6 +99,13 @@ data:
       - to: 'yang.tianfu@znwltech.com'
         # 邮件主题
         headers: { Subject: " {{ .CommonLabels.instance }} {{ .CommonAnnotations.summary }}   Alarm email " }
+
+    # dingtalk-hook
+    - name: 'webhook'
+      webhook_configs:
+      - url: 'http://dingtalk-hook:5000'
+        send_resolved: false
+
     #  wechat_configs:
     #  - send_resolved: false
     #    to_user: '@all'

@@ -98,7 +98,7 @@ spec:
     matchLabels:
       app: alertmanager
   serviceName: "alertmanager"
-  replicas: 2
+  replicas: 3
   template:
     metadata:
       labels:
@@ -122,7 +122,7 @@ spec:
       - name: alertmanager
         image: reg.chebai.org/paas/alertmanager:v0.18.0
         command: ["/bin/alertmanager"]
-        args: ["--web.listen-address=0.0.0.0:9093", "--cluster.listen-address=0.0.0.0:9094", "--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager","--cluster.peer=alertmanager-0.alertmanager:9094"] 
+        args: ["--web.listen-address=0.0.0.0:9093", "--cluster.listen-address=0.0.0.0:9094", "--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager","--cluster.peer=alertmanager-0.alertmanager:9094","--cluster.peer=alertmanager-1.alertmanager:9094","--cluster.peer=alertmanager-2.alertmanager:9094"] 
         ports:
         - containerPort: 9093
           name: alertmanager
@@ -134,7 +134,7 @@ spec:
             memory: 2Gi
           limits:
             cpu: 1
-            memory: 4Gi
+            memory: 2Gi
         volumeMounts:
         - name: alertmanager-data
           mountPath: /alertmanager

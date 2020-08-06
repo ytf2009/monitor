@@ -1,0 +1,65 @@
+
+# kubectl create secret generic dingtalk-secret --from-literal=token=0c914dd4df5b5f50a4736b55edfbf84fe4483adc2b74eda5a5303a1def1ac176 --from-literal=key=SEC251f47e7c82252d687593d3e6ec444c8d6b475e8ad08d0b1630ff04152e39985 --dry-run -o yaml
+apiVersion: v1
+data:
+  key: U0VDMjUxZjQ3ZTdjODIyNTJkNjg3NTkzZDNlNmVjNDQ0YzhkNmI0NzVlOGFkMDhkMGIxNjMwZmYwNDE1MmUzOTk4NQ==
+  token: MGM5MTRkZDRkZjViNWY1MGE0NzM2YjU1ZWRmYmY4NGZlNDQ4M2FkYzJiNzRlZGE1YTUzMDNhMWRlZjFhYzE3Ng==
+kind: Secret
+metadata:
+  name: dingtalk-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dingtalk-hook
+  name: dingtalk-hook
+spec:
+  selector:
+    matchLabels:
+      app: dingtalk-hook
+  template:
+    metadata:
+      labels:
+        app: dingtalk-hook
+    spec:
+      containers:
+      - name: dingtalk-hook
+        # image: yangpeng2468/alertmanager-dingtalk-hook:v1
+        image: reg.chebai.org/paas/dingtalk-hook:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: ROBOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: dingtalk-secret
+              key: token
+        - name: LOG_LEVEL
+          value: debug
+        - name: ROBOT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dingtalk-secret
+              key: key          
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 50m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dingtalk-hook
+spec:
+  selector:
+    app: dingtalk-hook
+  ports:
+  - name: hook
+    port: 5000
+    targetPort: http
