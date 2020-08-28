@@ -1,0 +1,13 @@
+groups:
+- name: cassandra.rules
+  rules:
+
+  # Alert for any instance that is unreachable for >5 minutes.
+  - alert: cassandra pvc usage
+    expr: (cassandra_storage_filesystem_usable_bytes  /  cassandra_storage_filesystem_bytes_total ) * 100 < 10
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "cassandra pvc  {{ $labels.instance }} is running full"
+      description: "cassandra pvc  {{ $labels.instance }} is running full"

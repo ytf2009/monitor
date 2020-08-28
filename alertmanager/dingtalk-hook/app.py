@@ -65,7 +65,7 @@ def send_alert(data):
             }
         }
     else:
-        title = '%s 有 %d 条新的报警' % (alert_name, len(alerts))
+        title = 'alertname=%s' % (alert_name)
         #external_url = alerts[0]['generatorURL']
         #alerts_job = alerts[0]['labels']['job']
         summary_total = "" 
@@ -82,7 +82,7 @@ def send_alert(data):
             "markdown": {
                 "title": title,
                 #"text": title + "\n" + "![](https://bxdc-static.oss-cn-beijing.aliyuncs.com/images/prometheus-recording-rules.png)\n" + _mark_item(alerts[0]) + "\n" + "[点击查看完整信息](" + external_url + ")\n"
-                "text": "#### %s \n> summary: \n # %s \n"% (title, summary_total) 
+                "text": "####  %s \n [Firing%s]  \n> Alarm items: \n ## %s \n" % (title, len(alerts), summary_total) 
             }
         }
 

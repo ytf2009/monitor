@@ -1,0 +1,50 @@
+groups:
+- name: redis.rules
+  rules:
+
+  # Alert for instance that is unreachable for >5 minutes.
+  - alert: redis_instance_down
+    expr: redis_up == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} in {{ $labels.environment }} has been down for more than 2 minutes."
+
+  - alert: RedisTooManyConnections
+    expr: redis_connected_clients > 8000
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Redis too many connections (instance {{ $labels.instance }})"
+      description: "Redis instance has too many connections\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: RedisRejectedConnections
+    expr: redis_rejected_connections_total > 1
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis rejected connections (instance {{ $labels.instance }})"
+      description: "Some connections to Redis has been rejected\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: RedisMissingMaster
+    expr: count(redis_instance_info{role="master"}) == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis missing master (instance {{ $labels.instance }})"
+      description: "Redis cluster has no node marked as master.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: RedisReplicationBroken
+    expr: redis_connected_slaves < 2
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis instance lost a slave\n  VALUE = {{ $value }}\n"
+      description: "Redis instance lost a slave\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+

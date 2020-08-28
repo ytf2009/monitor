@@ -1,0 +1,49 @@
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "minio.fullname" . }}
+  labels:
+    app: {{ template "minio.name" . }}
+    chart: {{ template "minio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+  labels:
+{{- if .Values.ingress.labels }}
+{{ toYaml .Values.ingress.labels | indent 4 }}
+{{- end }}
+spec:
+  rules:
+  {{- range $i,$map :=  .Values.ingress.hosts }}    
+  {{- if and $.Values.ingress.addns (not (eq $.Release.Namespace "default") ) }}
+  - host: {{ $map.host }}.{{ $.Release.Namespace }}.{{ $map.domain }}
+  {{- else }}
+  - host: {{ $map.host }}.{{ $map.domain }}
+  {{- end }}
+    http:
+      paths:
+      {{- range $i,$list :=  $map.paths }}
+      - path: {{ $list.path }}
+        backend:
+          serviceName: {{ $.Values.service.annotations.name }}
+          servicePort: {{ $list.servicePort }}
+      {{- end -}}
+  {{- end -}}
+  {{- if .Values.ingress.tls }}
+  tls:
+  {{- range $i,$map :=  .Values.ingress.tls }}
+  - secretName: {{ $map.secretName }}
+    hosts:
+    {{- range $j,$map2 :=  $map.hosts }}
+    {{- if and $.Values.ingress.addns (not (eq $.Release.Namespace "default") ) }}
+    - {{ $map2.host }}.{{ $.Release.Namespace }}.{{ $map2.domain }}
+    {{- else }}
+    - {{ $map2.host }}.{{ $map2.domain }}
+    {{- end }}
+    {{- end }}
+  {{- end -}}
+  {{- end -}}
+{{- end -}}

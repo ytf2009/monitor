@@ -86,7 +86,7 @@ spec:
     port: 9090
     #targetPort: web
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: prometheus
@@ -125,7 +125,7 @@ spec:
       serviceAccountName: prometheus
       containers:
       - name: prometheus
-        image: reg.chebai.org/paas/prometheus:v2.18.1
+        image: reg.chebai.org/paas/prometheus:v2.18.1 
         args:
           - --config.file=/etc/prometheus-shared/prometheus.yaml
           - --storage.tsdb.path=/var/prometheus
@@ -141,11 +141,11 @@ spec:
             containerPort: 10901
         resources:
           requests:
-            cpu: 0.5
-            memory: 2Gi
-          limits:
             cpu: 1
             memory: 4Gi
+          limits:
+            cpu: 2
+            memory: 6Gi
         volumeMounts:
           - name: config-shared
             mountPath: /etc/prometheus-shared

@@ -1,0 +1,144 @@
+groups:
+- name: kubernetes.rules 
+  rules:
+  - alert: PodDisknotEnough
+    expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100 > 85
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PVC {{$labels.namespace}}.{{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}}{{$labels.persistentvolumeclaim}} usage has exceeded {{$value}}%"
+      description: "PVC {{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}}-{{$labels.persistentvolumeclaim}} not enough {{$value}}"
+
+  - alert: PodDiskInodenotEnough
+    expr: kubelet_volume_stats_inodes_free / kubelet_volume_stats_inodes  * 100  < 15
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PVC {{$labels.namespace}}.{{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}}{{$labels.persistentvolumeclaim}} inode not enough {{$value}}%"
+      description: "PVC {{$labels.deployment}}{{$labels.statefulset}}{{$labels.daemonset}}-{{$labels.persistentvolumeclaim}} not enough {{$value}}"
+
+  # - alert: DaemonSetsMissScheduled
+  #   expr: kube_daemonset_status_number_misscheduled > 0
+  #   for: 2m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     description: A number of daemonsets are running where they are not supposed to run.
+  #     summary: Daemonsets are not scheduled correctly
+
+  - alert: K8SDaemonSetsNotScheduled
+    expr: kube_daemonset_status_desired_number_scheduled - kube_daemonset_status_current_number_scheduled  > 0
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      description: "Some pod of daemonsets {{$labels.namespace}}/{{$labels.daemonset}} are not scheduled."
+      summary: "Daemonsets are not scheduled correctly"
+
+  # - alert: DaemonSetRolloutStuck
+  #   expr: kube_daemonset_status_current_number_scheduled / kube_daemonset_status_desired_number_scheduled  * 100 < 100
+  #   for: 2m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     description: "Only {{$value}}% of desired pods scheduled and ready for daemon set {{$labels.namespace}}/{{$labels.daemonset}}"
+
+#  - alert: DeploymentReplicasNotUpdated
+#    expr: ((kube_deployment_status_replicas_updated != kube_deployment_spec_replicas) or (kube_deployment_status_replicas_available != kube_deployment_spec_replicas)) unless (kube_deployment_spec_paused == 1)
+#    for: 15m
+#    labels:
+#      severity: warning
+#    annotations:
+#      description: Replicas are not updated and available for deployment {{$labels.namespace}}/{{$labels.deployment}}
+
+  - alert: KubeNodeUnschedulable
+    expr: kube_node_spec_unschedulable == 1
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: Kube node {{ $labels.node }} in {{ $labels.environment }} is unschedulabled
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} is unschedulabled for 5m.
+
+  - alert: KubeNodeNotready
+    expr: kube_node_status_condition{condition="Ready",status!="true"} == 1
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: Kube node {{ $labels.node }} in {{ $labels.environment }} is not ready
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} is not ready.
+
+  - alert: KubeNodePressure
+    expr: kube_node_status_condition{condition=~"OutOfDisk|MemoryPressure|DiskPressure",status!="false"} == 1 
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: Kube node {{ $labels.node }} in {{ $labels.environment }} pressure.
+      description: Kube node {{ $labels.node }} in {{ $labels.environment }} pressure.
+
+  - alert: KubPVCLost
+    expr: kube_persistentvolumeclaim_status_phase{phase="Lost"} == 1
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.environment }}.{{ $labels.kubernetes_namespace }} is lost
+      description: PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.environment }}.{{ $labels.kubernetes_namespace }} is lost. 
+
+  - alert: KubernetesReplicasException
+    expr: kube_replicaset_spec_replicas{namespace=~"cert-manager|consul|falco|ingress-nginx|keycloak|paas|nuclio|monitor|observability|presto|rancher|trivy"}  !=  kube_replicaset_status_ready_replicas{namespace=~"cert-manager|consul|falco|ingress-nginx|keycloak|paas|nuclio|monitor|observability|presto|rancher|trivy"}
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: " Pod of replicas {{ $labels.namespace}}.{{$labels.replicaset }} number exception for 2 minutes"
+      description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes  VALUE = {{ $value }}" 
+
+  - alert: KubernetesDeploymentReplicasMismatch
+    expr: kube_deployment_spec_replicas{namespace=~"cert-manager|consul|falco|ingress-nginx|keycloak|paas|nuclio|monitor|observability|presto|rancher|trivy"} != kube_deployment_status_replicas_available{namespace=~"cert-manager|consul|falco|ingress-nginx|keycloak|paas|nuclio|monitor|observability|presto|rancher|trivy"}
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Kubernetes Deployment replicas mismatch instance {{ $labels.namespace }}/{{ $labels.deployment }}"
+      description: "Deployment Replicas mismatch\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: KubernetesStatefulsetReplicasMismatch
+    expr: kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Kubernetes StatefulSet replicas mismatch {{ $labels.namespace }}.{{ $labels.statefulset }}"
+      description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: KubernetesCronjobTooLong
+    expr: time() - kube_cronjob_status_last_schedule_time > 1800 and kube_cronjob_status_active != 0
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Kubernetes CronJob running time is too long (cronjob {{ $labels.namespace }}.{{ $labels.cronjob }})"
+      description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is taking more than 1h to complete.\n  VALUE = {{ $value }}\n "
+
+  - alert: KubernetesJobFailed
+    expr: kube_job_status_failed{namespace=~"paas|monitor"} != 0
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Kubernetes Job  {{ $labels.namespace}}.{{$labels.job_name }} failed"
+      description: "Job {{$labels.namespace}}/{{$labels.job_name}} failed to complete\n  VALUE = {{ $value }}\n  "
+
+  - alert: KubernetesCronjobSuspended
+    expr: kube_cronjob_spec_suspend != 0
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Kubernetes CronJob suspended (instance {{ $labels.instance }})"
+      description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is suspended\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"

@@ -37,6 +37,25 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/name: thanos-rule
+  name: thanos-rule-ui
+spec:
+  ports:
+  - port: 10902
+    protocol: TCP
+    targetPort: 10902
+    nodePort: 31009
+  selector:
+    app.kubernetes.io/name: thanos-rule
+  type: NodePort
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
   labels:
     app.kubernetes.io/name: thanos-rule
   name: thanos-rule
@@ -88,7 +107,7 @@ spec:
         - --grpc-address=0.0.0.0:10901
         - --http-address=0.0.0.0:10902
         - --alert.query-url=http://0.0.0.0:9090
-        - --rule-file=/etc/thanos/rules/*.rules
+        - --rule-file=/etc/thanos/rules/*.yaml
         - --objstore.config-file=/etc/bucket/config.yaml
         - --data-dir=/var/thanos/rule
         #- --label=rule_replica="$(NAME)"
@@ -97,6 +116,8 @@ spec:
         #- --query=dnssrv+_http._tcp.thanos-query.thanos.svc.cluster.local
         - --alertmanagers.url=http://alertmanager-headless:9093
         - --query=thanos-querier:9090
+        #- --web.route-prefix="rules"
+        #- --web.external-prefix=rules
         env:
         - name: NAME
           valueFrom:

@@ -1,0 +1,15 @@
+
+#批量创建pvc：enabled为true时创建
+persistence:
+  enabled: true
+  #storageClass: "csi-disk"
+  pvc:
+  - name: data-minio-monitor
+    size: 50Gi
+  #annotations:
+  #  everest.io/disk-volume-type: SAS
+  #  #volume.beta.kubernetes.io/storage-class: ssd
+  #  #volume.beta.kubernetes.io/storage-provisioner: flexvolume-huawei.com/fuxivol
+  #labels:
+  #  failure-domain.beta.kubernetes.io/region: cn-north-4
+  #  failure-domain.beta.kubernetes.io/zone: cn-north-4b

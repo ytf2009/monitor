@@ -1,0 +1,58 @@
+groups:
+- name: elasicsearch.rules
+  rules:
+
+  # Alert for instance that is unreachable for > 5 minutes.
+  - alert: ESClusterStatus
+    expr: elasticsearch_cluster_health_status{color="red"} == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} in cluster {{ $labels.cluster }} status is red."
+      description: "Instance {{ $labels.instance }} in cluster {{ $labels.cluster }} status is red more than 5 minutes."
+
+  - alert: ElasticsearchClusterYellow
+    expr: elasticsearch_cluster_health_status{color="yellow"} == 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Elasticsearch Cluster Yellow (instance {{ $labels.instance }})"
+      description: "Elastic Cluster Yellow status\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ElasticsearchPendingTasks
+    expr: elasticsearch_cluster_health_number_of_pending_tasks > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Elasticsearch pending tasks (instance {{ $labels.instance }})"
+      description: "Number of pending tasks for 10 min. Cluster works slowly.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ElasticsearchHeapUsageTooHigh
+    expr: (elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}) * 100 > 90
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Elasticsearch Heap Usage Too High (instance {{ $labels.instance }})"
+      description: "The heap usage is over 90% for 5m\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ElasticsearchDiskSpaceLow
+    expr: elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes * 100 < 20
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Elasticsearch disk space low (instance {{ $labels.instance }})"
+      description: "The disk usage is over 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ElasticsearchHealthyNodes
+    expr: elasticsearch_cluster_health_number_of_nodes < 6
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Elasticsearch Healthy Nodes (instance {{ $labels.instance }})"
+      description: "Number Healthy Nodes less then number_of_nodes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"

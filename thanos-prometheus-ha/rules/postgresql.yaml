@@ -1,0 +1,32 @@
+groups:
+- name: postgresql.rules
+  rules:
+  - alert: PostgresqlDown
+    expr: pg_up == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Postgresql down (instance {{ $labels.instance }})"
+      description: "Postgresql instance is down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  #  Postgresql exporter is showing errors. 
+  - alert: PostgresqlExporterError
+    expr: pg_exporter_last_scrape_error > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Postgresql exporter error (instance {{ $labels.instance }})"
+      description: "Postgresql exporter is showing errors. A query may be buggy in query.yaml\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  # PostgreSQL instance has too many connections
+  - alert: PostgresqlTooManyConnections
+    expr: sum ( pg_stat_activity_count )  /  sum ( pg_settings_max_connections )  * 100   >  80
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Postgresql too many connections current is {{ $value }}"
+      description: "PostgreSQL instance has too many connections\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+

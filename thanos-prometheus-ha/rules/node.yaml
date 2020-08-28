@@ -1,0 +1,103 @@
+groups:
+- name: node.rules
+  rules:
+  - alert: high_load
+    expr: node_load5 > 10
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} under high load"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} is under high load(current node_load1 is {{ $value }})."
+
+  - alert: NodeDiskRunningFull
+    expr: (100 - node_filesystem_free_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} * 100) > 80
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "device {{$labels.device}} on node {{$labels.instance}} is more than 80%"
+      description: "device {{$labels.device}} on node {{$labels.instance}} is more than 80% (mounted at {{$labels.mountpoint}})"
+
+  - alert: NodeDiskRunningFull
+    expr: (100 - node_filesystem_free_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*"} * 100) > 90
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: "device {{$labels.device}} on node {{$labels.instance}} is more than 90%"
+      description: "device {{$labels.device}} on node {{$labels.instance}} is more than 90% (mounted at {{$labels.mountpoint}})"
+
+  - alert: NodeCPUUsage
+    expr: 100 - ((avg  by (instance)(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 75
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "{{$labels.instance}} CPU usage is high current cpu idle value is {{ $value }}%)"
+      description: "{{$labels.instance}} CPU usage is high (current cpu idle value is {{ $value }}%)"
+
+  - alert: NodeMemUsage
+    expr: (100 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes)/node_memory_MemTotal_bytes) * 100) > 85
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "{{$labels.instance}} memory usage is high current value is {{ $value }}"
+      description: "{{$labels.instance}} memory usage is more than 85% (current value is {{ $value }})"
+
+  - alert: UnusualNetworkThroughputIn
+    expr: rate(node_network_receive_bytes_total{device=~'eth0'}[10m])  /  1024 / 1024 > 50
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: UnusualNetworkThroughputIn
+      description: "Host network interfaces are probably receiving too much data (> 10 MB/s)\n VALUE = {{ $value }}\n LABELS: {{ $labels }}"
+
+  - alert: UnusualNetworkThroughputOut
+    expr: rate(node_network_receive_bytes_total{device=~'eth0'}[10m])  /  1024 / 1024 > 50
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: UnusualNetworkThroughputOut
+      description: "Host network interfaces are probably sending too much data (> 10 MB/s)\n VALUE = {{ $value }}\n LABELS: {{ $labels }}"
+
+  - alert: OutOfInodes
+    expr: node_filesystem_files_free{device!="lxcfs"} / node_filesystem_files{device!="lxcfs"} * 100 < 10
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Out of inodes (instance {{ $labels.instance }})"
+      description: "Disk is almost running out of available inodes (< 10% left)\n VALUE = {{ $value }}\n LABELS: {{ $labels }}"
+
+  # Disk is probably reading too much data (> 50 MB/s)
+  - alert: HostUnusualDiskReadRate
+    expr: sum by (instance) (irate(node_disk_read_bytes_total[10m])) / 1024 / 1024 > 200
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host unusual disk read rate (instance {{ $labels.instance }})"
+      description: "Disk is probably reading too much data (> 200 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  #  Disk is probably writing too much data (> 50 MB/s)
+  - alert: HostUnusualDiskWriteRate
+    expr: sum by (instance) (irate(node_disk_written_bytes_total[10m])) / 1024 / 1024 > 200
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host unusual disk write rate (instance {{ $labels.instance }})"
+      description: "Disk is probably writing too much data (> 200 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: HostOomKillDetected
+    expr: increase(node_vmstat_oom_kill[5m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host OOM kill detected (instance {{ $labels.instance }})"
+      description: "OOM kill detected\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
