@@ -1,9 +1,9 @@
 
-# kubectl create secret generic dingtalk-secret --from-literal=token=0c914dd4df5b5f50a4736b55edfbf84fe4483adc2b74eda5a5303a1def1ac176 --from-literal=key=SEC251f47e7c82252d687593d3e6ec444c8d6b475e8ad08d0b1630ff04152e39985 --dry-run -o yaml
+# kubectl create secret generic dingtalk-secret --from-literal=token=vei3ciex3lahphe1cos6ieThih3niwaizie6kaimi3wohCh5ipudih7Iec2aecai --from-literal=key=vei3ciex3lahphe1cos6ieThih3niwaizie6kaimi3wohCh5ipudih7Iec2aecai --dry-run -o yaml
 apiVersion: v1
 data:
-  key: U0VDMjUxZjQ3ZTdjODIyNTJkNjg3NTkzZDNlNmVjNDQ0YzhkNmI0NzVlOGFkMDhkMGIxNjMwZmYwNDE1MmUzOTk4NQ==
-  token: MGM5MTRkZDRkZjViNWY1MGE0NzM2YjU1ZWRmYmY4NGZlNDQ4M2FkYzJiNzRlZGE1YTUzMDNhMWRlZjFhYzE3Ng==
+  key: vei3ciex3lahphe1cos6ieThih3niwaizie6kaimi3wohCh5ipudih7Iec2aecai==
+  token: vei3ciex3lahphe1cos6ieThih3niwaizie6kaimi3wohCh5ipudih7Iec2aecai==
 kind: Secret
 metadata:
   name: dingtalk-secret

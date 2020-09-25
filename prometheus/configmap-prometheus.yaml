@@ -311,7 +311,6 @@ data:
         action: keep
 
     - job_name: 'kube-state-metrics'
-      
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -510,3 +509,12 @@ data:
     #   scheme: http
     #   static_configs:
     #   - targets: ['minio.paas:9000']
+
+    - job_name: 'kubernetes-blackbox'
+      scrape_interval: 15s
+      static_configs:
+      - targets:
+        - 'monitor-blackboxexporter-monitor:9115'
+        labels:
+          db_ns: monitor
+          environment: dev
