@@ -5,7 +5,7 @@ metadata:
   namespace: monitor
 spec:
   rules:
-  - host: grafana.chebai.org
+  - host: grafana.test.org
     http:
       paths:
       - path: 

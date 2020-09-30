@@ -72,6 +72,21 @@ spec:
   selector:
     app.kubernetes.io/name: thanos-rule
 ---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: rule
+  namespace: monitor
+spec:
+  rules:
+  - host: rule.example.org
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: thanos-rule
+          servicePort: 10902        
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -123,7 +138,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: reg.chebai.org/paas/thanos:v0.12.2
+        image: reg.chebai.org/paas/thanos:v0.15.0
         livenessProbe:
           failureThreshold: 24
           httpGet:

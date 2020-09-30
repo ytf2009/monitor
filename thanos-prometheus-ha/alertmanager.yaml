@@ -8,9 +8,9 @@ data:
     global:
       # The smarthost and SMTP sender used for mail notifications.
       smtp_smarthost: 'smtphz.qiye.163.com:587'
-      smtp_from: 'monitor@znwltech.com'
-      smtp_auth_username: 'monitor@znwltech.com'
-      smtp_auth_password: 'jEuA3gXs8h87sjeq'
+      smtp_from: 'monitor@test.com'
+      smtp_auth_username: 'monitor@test.com'
+      smtp_auth_password: '123'
     #  smtp_require_tls: false
     
     templates:
@@ -63,15 +63,15 @@ data:
     receivers:
     - name: 'monitor_prometheus'
       email_configs:
-      #- to: 'sre@znwltech.com'
-      - to: 'yang.tianfu@znwltech.com'
+      #- to: 'sre@test.com'
+      - to: 'yangtf@test.com'
     #  wechat_configs:
     #  - send_resolved: false
     #    to_user: '@all'
     #    agent_id: '1000002'
     #    api_url: 'https://qyapi.weixin.qq.com/cgi-bin/'
-    #    corp_id: 'ww85a087a8e6d3f72b'
-    #    api_secret: 'zgTmTpG7d2garAze1nQPQ2xegifCwJHWzAN0MOWyxcc'
+    #    corp_id: '4345435'
+    #    api_secret: '43543534543'
 ---
 apiVersion: v1
 kind: Service
@@ -185,6 +185,21 @@ spec:
   type: NodePort
 status:
   loadBalancer: {}
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitor
+spec:
+  rules:
+  - host: alertmanager.example.org
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: alertmanager
+          servicePort: 9093     
   #---
   #apiVersion: v1
   #kind: Service

@@ -121,6 +121,8 @@ spec:
             {{- end }}
               containerPort: 9000
           env:
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: public
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:

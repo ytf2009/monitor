@@ -32,7 +32,7 @@ spec:
         #    secretKeyRef:
         #      key: thanos.yaml
         #      name: thanos-objectstorage
-        image: reg.chebai.org/paas/thanos:v0.12.1
+        image: reg.chebai.org/paas/thanos:v0.15.0
         name: thanos-compactor
         ports:
         - containerPort: 10902

@@ -33,7 +33,7 @@ spec:
       containers:
       - name: thanos
         #image: improbable/thanos:v0.6.0 
-        image: reg.chebai.org/paas/thanos:v0.12.1 
+        image: reg.chebai.org/paas/thanos:v0.15.0 
         args:
         - query
         - --log.level=debug
@@ -84,3 +84,18 @@ spec:
   selector:
     app: thanos-querier
   type: NodePort
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: querier
+  namespace: monitor
+spec:
+  rules:
+  - host: querier.example.org
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: thanos-querier
+          servicePort: 9090    

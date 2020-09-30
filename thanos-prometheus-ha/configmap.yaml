@@ -8,7 +8,7 @@ data:
     type: S3
     config:
       bucket: "prometheus"
-      endpoint: "minio-monitor:9000"
+      endpoint: "minio:9000"
       access_key: "AKIAIOSFODNN7EXAMPLE"
       secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
       insecure: true
@@ -51,9 +51,9 @@ data:
           - '{job=~"kubernetes-.*|blackbox.*"}'
       static_configs:
         - targets:
-          - 'monitor-prometheus-m1c2-monitor.icos.city'
+          - 'monitor-prometheus-dev-monitor.example.city'
           labels:
-            environment: m1c2
+            environment: dev
 
     - job_name: 'prometheus'
       static_configs:
@@ -66,6 +66,7 @@ data:
       - targets: 
         - 'alertmanager-0.alertmanager:9093'
         - 'alertmanager-1.alertmanager:9093'
+        - 'alertmanager-2.alertmanager:9093'
 
     - job_name: 'thanos'
       static_configs:
@@ -78,9 +79,10 @@ data:
         - 'thanos-rule-0.thanos-rule:10902'
         - 'thanos-rule-1.thanos-rule:10902'
         - 'thanos-compactor:10902'
+        - 'thanos-bucket:10902'
 
     - job_name: 'minio'
       metrics_path: /minio/prometheus/metrics
       scheme: http
       static_configs:
-      - targets: ['minio-monitor:9000']
+      - targets: ['minio:9000']

@@ -42,7 +42,7 @@ spec:
         #    secretKeyRef:
         #      key: thanos.yaml
         #      name: thanos-objectstorage
-        image: reg.chebai.org/paas/thanos:v0.12.1 
+        image: reg.chebai.org/paas/thanos:v0.15.0 
         name: thanos-store
         ports:
         - containerPort: 10901
@@ -74,11 +74,6 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: thanos-store-data
-      #annotations:
-      #  everest.io/disk-volume-type: SAS
-      #labels:
-      #  failure-domain.beta.kubernetes.io/region: cn-north-4
-      #  failure-domain.beta.kubernetes.io/zone: cn-north-4b
     spec:
       accessModes: [ "ReadWriteOnce" ]
       #storageClassName: csi-disk
@@ -119,3 +114,18 @@ spec:
       targetPort: grpc
   selector:
     thanos-store-api: "true"
+---
+# apiVersion: networking.k8s.io/v1beta1
+# kind: Ingress
+# metadata:
+#   name: store
+#   namespace: monitor
+# spec:
+#   rules:
+#   - host: store.example.org
+#     http:
+#       paths:
+#       - path: 
+#         backend:
+#           serviceName: thanos-store
+#           servicePort: 10902    
